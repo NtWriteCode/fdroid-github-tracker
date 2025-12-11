@@ -2,25 +2,23 @@ FROM python:3.14-slim
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    default-jre-headless \
+    default-jdk-headless \
+    apksigner \
     curl \
-    cron \
-    && pip install --no-cache-dir fdroidserver \
+    git \
+    && pip install --no-cache-dir fdroidserver pyyaml \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Set Java Home
+ENV JAVA_HOME="/usr/lib/jvm/default-java"
 
 # Create app directory
 WORKDIR /app
 
-# Copy scripts
-COPY scripts/poll_and_update.sh /app/poll_and_update.sh
-RUN chmod +x /app/poll_and_update.sh
+# Copy update script
+COPY update_fdroid.py /app/update_fdroid.py
+RUN chmod +x /app/update_fdroid.py
 
-# Create cron job
-RUN echo "*/15 * * * * cd /app && /app/poll_and_update.sh >> /var/log/cron.log 2>&1" > /etc/cron.d/fdroid-poll
-RUN chmod 0644 /etc/cron.d/fdroid-poll
-RUN crontab /etc/cron.d/fdroid-poll
-RUN touch /var/log/cron.log
-
-# Start cron and tail logs
-CMD cron && tail -f /var/log/cron.log
+# Run Python script directly (handles its own looping)
+CMD ["python3", "-u", "/app/update_fdroid.py"]

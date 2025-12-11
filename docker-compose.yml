@@ -1,17 +1,14 @@
-version: '3.8'
-
 services:
   fdroid-updater:
-    build: .
+    image: ntwritecode/fdroid-localupdater:latest
+    user: 1000:1000 # Optional, if you want to run as non-root
     container_name: fdroid-updater
     restart: unless-stopped
     environment:
-      - POLL_INTERVAL=900 # 15 minutes in seconds
+      - POLL_INTERVAL=900
       - FDROID_KEY_ALIAS=${FDROID_KEY_ALIAS}
       - FDROID_KEYSTORE_PASS=${FDROID_KEYSTORE_PASS}
       - FDROID_KEY_PASS=${FDROID_KEY_PASS}
     volumes:
-      - ./config.yml:/app/config.yml:ro
-      - ./repos.json:/app/repos.json:ro
-      - ./keystore.jks:/app/keystore.jks:ro
-      - ./data:/data
+      - ~/local_fdroid_path/config:/app/config
+      - ~/local_fdroid_path/data:/data

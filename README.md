@@ -36,8 +36,15 @@ cp /path/to/your/keystore.jks ./keystore.jks
 
 ### 3. Run with Docker Compose
 
+**Option A: Use pre-built image from Docker Hub (recommended)**
 ```bash
 docker-compose up -d
+```
+
+**Option B: Build locally**
+```bash
+# Modify docker-compose.yml to use 'build: .' instead of 'image:'
+docker-compose up -d --build
 ```
 
 The container will:

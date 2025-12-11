@@ -1,0 +1,5 @@
+repo_url: "https://fdroid.example.com/repo"
+repo_name: "My F-Droid Repo"
+repo_icon: "fdroid-icon.png"
+repo_description: "My personal F-Droid repository."
+archive_older: 0
