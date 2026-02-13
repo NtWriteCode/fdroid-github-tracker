@@ -298,18 +298,42 @@ def run_fdroid_update(sign=True):
     if not config_dst.exists() and config_src.exists():
         shutil.copy(config_src, config_dst)
     
+    if not config_dst.exists():
+        log("ERROR: config.yml not found, cannot proceed with update")
+        return
+
     os.chmod('config.yml', 0o600)
     
-    keystore_config = f"""
+    # Proactively clean up any left-over temp config from previous crashed runs
+    with open('config.yml', 'r') as f:
+        lines = f.readlines()
+    if any('--- TEMPORARY KEYSTORE CONFIG' in line for line in lines):
+        log("Cleaning up left-over temporary config from previous run...")
+        with open('config.yml', 'w') as f:
+            for line in lines:
+                if '--- TEMPORARY KEYSTORE CONFIG' in line:
+                    break
+                f.write(line)
+
+    # Read config again to check for existing keys
+    with open('config.yml', 'r') as f:
+        config_lines = f.readlines()
+    
+    # Check if keystore is already configured in the base config
+    has_keystore = any(line.strip().startswith('keystore:') for line in config_lines)
+    
+    added_config = False
+    if not has_keystore:
+        keystore_config = f"""
 # --- TEMPORARY KEYSTORE CONFIG (AUTO-GENERATED) ---
 keystore: /app/config/keystore.jks
 repo_keyalias: {os.environ.get('FDROID_KEY_ALIAS', '')}
 keystorepass: {os.environ.get('FDROID_KEYSTORE_PASS', '')}
 keypass: {os.environ.get('FDROID_KEY_PASS', '')}
 """
-    
-    with open('config.yml', 'a') as f:
-        f.write(keystore_config)
+        with open('config.yml', 'a') as f:
+            f.write(keystore_config)
+        added_config = True
     
     try:
         log("Running fdroid update...")
@@ -321,14 +345,15 @@ keypass: {os.environ.get('FDROID_KEY_PASS', '')}
             log("F-Droid index signed and ready!")
             
     finally:
-        # Remove keystore config
-        with open('config.yml', 'r') as f:
-            lines = f.readlines()
-        with open('config.yml', 'w') as f:
-            for line in lines:
-                if '--- TEMPORARY KEYSTORE CONFIG' in line:
-                    break
-                f.write(line)
+        if added_config:
+            # Remove temporary keystore config using the marker
+            with open('config.yml', 'r') as f:
+                lines = f.readlines()
+            with open('config.yml', 'w') as f:
+                for line in lines:
+                    if '--- TEMPORARY KEYSTORE CONFIG' in line:
+                        break
+                    f.write(line)
 
 def main():
     log("Starting F-Droid updater service...")
