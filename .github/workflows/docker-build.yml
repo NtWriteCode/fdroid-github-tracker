@@ -7,7 +7,6 @@ on:
     paths:
       - 'Dockerfile'
       - 'update_fdroid.py'
-      - 'debug_version_codes.py'
       - '.github/workflows/docker-build.yml'
 
 permissions:

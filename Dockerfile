@@ -20,9 +20,5 @@ WORKDIR /app
 COPY update_fdroid.py /app/update_fdroid.py
 RUN chmod +x /app/update_fdroid.py
 
-# Copy debug script
-COPY debug_version_codes.py /app/debug_version_codes.py
-RUN chmod +x /app/debug_version_codes.py
-
 # Run Python script directly (handles its own looping)
 CMD ["python3", "-u", "/app/update_fdroid.py"]
